@@ -1,0 +1,30 @@
+shleifer
+===============================================================================
+Arkadi Shleifer, ID 311851059, arkadi.shleifer@mail.huji.ac.il
+===============================================================================
+
+                 Project 11: Compiler II - Syntax Analysis
+              ---------------------------------------------------------
+  
+
+Submitted Files
+---------------
+README - This file.
+JackAnalyzer - JACK file .jack to XML file .xml
+Makefile - make file
+JackAnalyzer.py - Parses jack file to xml file
+JackTokenizer.py - Takes jack file and creates tokens object
+CompilationEngine.py - Compiles the token object to xml file by the grammer rules
+
+Remarks
+-------
+I got a path.
+If it was a folder, I took all its .jack files and translated to xml files by the grammers rules.
+Each file translated to xml with the same name to the same directory.
+Else, I got a path to an .jack file.
+I took the path of each file and a first read it all the one line.
+Then i removed all the comments and created array of tokens.
+Then the compilation engine compiled all the token by the grammer rules to sinle string.
+That string was saved to new xml file.
+The file created by the jack analyzer is the .xml file we wanted.
+The compilation engine is not the most brilliant but it works good.
