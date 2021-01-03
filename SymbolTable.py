@@ -7,8 +7,8 @@ class SymbolTable:
     argument_counter = 0
     var_counter = 0
 
-    def __init__(self):
-        print("start")
+    #def __init__(self):
+
 
     def startSubroutine(self):
         if len(self.subroutine_table) != 0:
@@ -16,19 +16,28 @@ class SymbolTable:
 
     def define(self, name, type, kind, scope):
         if scope == "class":
-            self.class_table[name] = {"type": type, "kind": kind, "idx": 0}
+            if kind == "static":
+                self.class_table[name] = {"type": type, "kind": kind, "idx": self.static_counter}
+                self.static_counter +=1
+            else:
+                self.class_table[name] = {"type": type, "kind": kind, "idx": self.field_counter}
+                self.field_counter +=1
         else:
-            self.subroutine_table[name] = {"type": type, "kind": kind, "idx": 0}
-        self.varCount(kind)
+            if kind == "argument":
+                self.subroutine_table[name] = {"type": type, "kind": kind, "idx": self.argument_counter}
+                self.argument_counter +=1
+            else:
+                self.subroutine_table[name] = {"type": type, "kind": kind, "idx": self.var_counter}
+                self.var_counter +=1
 
     def varCount(self, kind):
         if kind == "static":
-            self.static_counter += 1
+            return self.static_counter
         elif kind == "field":
-            self.field_counter += 1
+            return self.field_counter
         elif kind == "argument":
-            self.argument_counter += 1
-        else: self.var_counter += 1
+            return self.argument_counter
+        else: return self.var_counter
 
     def kindOf(self, name):
         if name in self.class_table:
