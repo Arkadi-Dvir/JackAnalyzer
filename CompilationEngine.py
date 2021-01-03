@@ -1,4 +1,5 @@
 import JackTokenizer
+import SymbolTable
 import sys
 import os
 SPACE = "  "
@@ -13,8 +14,13 @@ class CompilationEngine:
     taber = str
     className = str
     subRoutineName = str
+    cur_scope = str
+    cur_kind = str
+    cur_type = str
+    sym_table = SymbolTable
     def __init__(self, tokens_type):
         self.tokens = tokens_type
+        self.sym_table = SymbolTable.SymbolTable()
 
     def compileClass(self):
         if self.tokens.getToken() == "class":
@@ -45,10 +51,13 @@ class CompilationEngine:
         else: return False
         self.my_file_string = self.my_file_string + "</class>\n"
 
+
     def compileClassVarDec(self):
+        self.cur_scope = "class"
         if self.tokens.getToken() == "field" or self.tokens.getToken() == "static":
 
             while self.tokens.getToken() == "field" or self.tokens.getToken() == "static":
+                self.cur_kind = self.tokens.getToken()
                 self.my_file_string = self.my_file_string + self.taber + "<classVarDec>\n"
                 self.taber = self.taber + SPACE
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -56,11 +65,13 @@ class CompilationEngine:
                 self.tokens.advance()
                 if self.tokens.getToken() in TYPE or self.tokens.getToken() == self.className \
                         or self.tokens.tokenType() == "identifier":
+                    self.cur_type = self.tokens.getToken()
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                     self.tokens.advance()
                 else: return False
                 if self.tokens.tokenType() == "identifier":
+                    self.cur_type = self.tokens.getToken()
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                     self.tokens.advance()
@@ -68,12 +79,14 @@ class CompilationEngine:
                 while self.tokens.getToken() != ";":
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+                    self.sym_table.define(self.tokens.getToken(), self.cur_type, self.cur_kind, self.cur_scope)
                     self.tokens.advance()
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                 self.tokens.advance()
                 self.taber = self.taber[0:-2]
                 self.my_file_string = self.my_file_string + self.taber + "</classVarDec>\n"
+                print(self.sym_table.class_table)
             return True
         else: return False
 

@@ -2,13 +2,16 @@
 class SymbolTable:
     class_table = {}
     subroutine_table = {}
-    static_counter = 0
-    field_counter = 0
-    argument_counter = 0
-    var_counter = 0
+    static_counter = int
+    field_counter = int
+    argument_counter = int
+    var_counter = int
 
-    #def __init__(self):
-
+    def __init__(self):
+        self.static_counter = 0
+        self.field_counter = 0
+        self.argument_counter = 0
+        self.var_counter = 0
 
     def startSubroutine(self):
         if len(self.subroutine_table) != 0:
