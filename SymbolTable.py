@@ -13,6 +13,8 @@ class SymbolTable:
     def startSubroutine(self):
         if len(self.subroutine_table) != 0:
             self.subroutine_table.clear()
+        self.var_counter = 0
+        self.argument_counter = 0
 
     def define(self, name, type, kind, scope):
         if scope == "class":
