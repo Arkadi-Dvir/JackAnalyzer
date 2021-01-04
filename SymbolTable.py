@@ -20,7 +20,7 @@ class SymbolTable:
         self.argument_counter = 0
 
     def define(self, name, type, kind, scope):
-        if scope == "class":
+        if scope == "class" :
             if kind == "static":
                 self.class_table[name] = {"type": type, "kind": kind, "idx": self.static_counter}
                 self.static_counter +=1
