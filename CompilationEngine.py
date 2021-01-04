@@ -138,6 +138,13 @@ class CompilationEngine:
                 return False
             self.taber = self.taber[0:-2]
             self.my_file_string = self.my_file_string + self.taber + "</subroutineDec>\n"
+            print(self.cur_scope)
+            for i in self.sym_table.subroutine_table.keys():
+                print("Name: " + i, end=", ")
+                print("Type: " + self.sym_table.subroutine_table[i]["type"], end=", ")
+                print("Kind: " + self.sym_table.subroutine_table[i]["kind"], end=", ")
+                print("Index: ", end="")
+                print(self.sym_table.subroutine_table[i]["idx"])
         return True
 
     def compileParameterList(self):
@@ -193,6 +200,8 @@ class CompilationEngine:
 
     def compileVarDec(self):
         if self.tokens.getToken() == "var":
+            self.cur_scope = self.subRoutineName
+            self.cur_kind = self.tokens.getToken()
             while self.tokens.getToken() == "var":
                 self.my_file_string = self.my_file_string + self.taber + "<varDec>\n"
                 self.taber = self.taber + "  "
@@ -203,11 +212,13 @@ class CompilationEngine:
                         or self.tokens.tokenType() == "identifier":
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+                    self.cur_type = self.tokens.getToken()
                     self.tokens.advance()
                 else: return False
                 if self.tokens.tokenType() == "identifier":
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+                    self.sym_table.define(self.tokens.getToken(), self.cur_type, self.cur_kind, self.cur_scope)
                     self.tokens.advance()
                 else: return False
                 while self.tokens.getToken() != ";":
@@ -219,6 +230,7 @@ class CompilationEngine:
                     if self.tokens.tokenType() == "identifier":
                         self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                               self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+                        self.sym_table.define(self.tokens.getToken(), self.cur_type, self.cur_kind, self.cur_scope)
                         self.tokens.advance()
                     else: return False
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -226,6 +238,7 @@ class CompilationEngine:
                 self.tokens.advance()
                 self.taber = self.taber[0:-2]
                 self.my_file_string = self.my_file_string + self.taber + "</varDec>\n"
+
             return True
         else: return True
 
