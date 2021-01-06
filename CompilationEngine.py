@@ -146,15 +146,8 @@ class CompilationEngine:
             #############################################################################
             #print(self.cur_subRoutineType + " " + self.className + "." + self.cur_scope, end=" ")
             #print(len(self.sym_table.subroutine_table))
-            name = self.className + "." + self.cur_scope
-            self.vmWriter.writeFunction(name, str(len(self.sym_table.subroutine_table)))
-            for i in self.sym_table.subroutine_table.keys():
-                print("Name: " + i, end=", ")
-                print("Type: " + self.sym_table.subroutine_table[i]["type"], end=", ")
-                print("Kind: " + self.sym_table.subroutine_table[i]["kind"], end=", ")
-                print("Index: ", end="")
-                print(self.sym_table.subroutine_table[i]["idx"])
-                #############################################################################
+
+            #############################################################################
             if not self.compileSubroutineBody():
                 return False
             self.taber = self.taber[0:-2]
@@ -203,6 +196,15 @@ class CompilationEngine:
         else: return False
         if not self.compileVarDec(): # To add space to taber
             return False
+        #######################################
+        print(self.subRoutineName)
+        for i in self.sym_table.subroutine_table.keys():
+            print("Name: " + i, end=", ")
+            print("Type: " + self.sym_table.subroutine_table[i]["type"], end=", ")
+            print("Kind: " + self.sym_table.subroutine_table[i]["kind"], end=", ")
+            print("Index: ", end="")
+            print(self.sym_table.subroutine_table[i]["idx"])
+        #####################################
         if not self.compileStatements():  # To add space to taber
             return False
         if self.tokens.getToken() == '}':
@@ -214,6 +216,7 @@ class CompilationEngine:
         return True
 
     def compileVarDec(self):
+        nVar = 0
         if self.tokens.getToken() == "var":
             self.cur_scope = self.subRoutineName
             self.cur_kind = self.tokens.getToken()
@@ -234,6 +237,7 @@ class CompilationEngine:
                     self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                     self.sym_table.define(self.tokens.getToken(), self.cur_type, self.cur_kind, self.cur_scope)
+                    nVar +=1
                     self.tokens.advance()
                 else: return False
                 while self.tokens.getToken() != ";":
@@ -246,6 +250,7 @@ class CompilationEngine:
                         self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                               self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                         self.sym_table.define(self.tokens.getToken(), self.cur_type, self.cur_kind, self.cur_scope)
+                        nVar +=1
                         self.tokens.advance()
                     else: return False
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -254,8 +259,13 @@ class CompilationEngine:
                 self.taber = self.taber[0:-2]
                 self.my_file_string = self.my_file_string + self.taber + "</varDec>\n"
 
+            name = self.className + "." + self.cur_scope
+            self.vmWriter.writeFunction(name, str(nVar))
             return True
-        else: return True
+        else:
+            name = self.className + "." + self.cur_scope
+            self.vmWriter.writeFunction(name, str(nVar))
+            return True
 
 
     def compileStatements(self):
@@ -277,6 +287,7 @@ class CompilationEngine:
         return True
 
     def compileLet(self):
+        cur_var = str
         if self.tokens.getToken() == "let":
             self.my_file_string = self.my_file_string + self.taber + "<letStatement>\n"
             self.taber = self.taber + "  "
@@ -287,6 +298,9 @@ class CompilationEngine:
         if self.tokens.tokenType() == "identifier":
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+            ################################
+            cur_var = self.tokens.getToken()
+            #################################
             self.tokens.advance()
         else: return False
         if self.tokens.getToken() == "[":
@@ -295,6 +309,12 @@ class CompilationEngine:
             self.tokens.advance()
             if not self.compileExpression():
                 return False
+            #####################################
+            if cur_var in self.sym_table.subroutine_table:
+                self.vmWriter.writePop("local", self.sym_table.subroutine_table[cur_var]["idx"])
+            else:
+                self.vmWriter.writePop("static", self.sym_table.class_table[cur_var]["idx"])
+            #####################################
             if self.tokens.getToken() == "]":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
@@ -307,6 +327,12 @@ class CompilationEngine:
         else: return False
         if not self.compileExpression():
             return False
+        #####################################
+        if cur_var in self.sym_table.subroutine_table:
+            self.vmWriter.writePop("local", self.sym_table.subroutine_table[cur_var]["idx"])
+        else:
+            self.vmWriter.writePop("static", self.sym_table.class_table[cur_var]["idx"])
+        #####################################
         if self.tokens.getToken() == ";":
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
@@ -487,8 +513,15 @@ class CompilationEngine:
             termIndicator = 1
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+            ##################################################
             #print("push " + self.tokens.getToken())
-            self.vmWriter.writePush("constant",self.tokens.getToken()) # Need to modify for string
+            if self.tokens.getToken() == "false" or self.tokens.getToken() == "null":
+                self.vmWriter.writePush("constant", 0)
+            elif self.tokens.getToken() == "true":
+                self.vmWriter.writePush("constant", 0)
+                self.vmWriter.writeArithmetic("not")
+            else:self.vmWriter.writePush("constant",self.tokens.getToken()) # Need to modify for string
+            #################################################
             self.tokens.advance()
         elif self.tokens.tokenType() == "identifier" and self.tokens.getToken() != self.subRoutineName and \
                 self.tokens.peek() != ".":

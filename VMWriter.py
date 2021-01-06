@@ -11,32 +11,32 @@ class VMWriter:
         if segment == "constant":
             self.cur_file = self.cur_file + "push constant " + str(idx) + "\n"
         elif segment == "argument":
-            self.cur_file = self.cur_file + "push argument " + idx + "\n"
-        elif segment == "local":
-            self.cur_file = self.cur_file + "push local " + idx + "\n"
+            self.cur_file = self.cur_file + "push argument " + str(idx) + "\n"
+        elif segment == "var":
+            self.cur_file = self.cur_file + "push local " + str(idx) + "\n"
         elif segment == "static":
-            self.cur_file = self.cur_file + "push static " + idx + "\n"
+            self.cur_file = self.cur_file + "push static " + str(idx) + "\n"
         elif segment == "this":
-            self.cur_file = self.cur_file + "push this " + idx + "\n"
+            self.cur_file = self.cur_file + "push this " + str(idx) + "\n"
         elif segment == "that": #Might be problem with the index
-            self.cur_file = self.cur_file + "push that " + idx + "\n"
+            self.cur_file = self.cur_file + "push that " + str(idx) + "\n"
         elif segment == "pointer":
-            self.cur_file = self.cur_file + "push pointer " + idx + "\n"
-        else: self.cur_file = self.cur_file + "push temp " + idx + "\n"
+            self.cur_file = self.cur_file + "push pointer " + str(idx) + "\n"
+        else: self.cur_file = self.cur_file + "push temp " + str(idx) + "\n"
 
     def writePop(self, segment, idx):
         if segment == "argument":
-            self.cur_file = self.cur_file + "pop argument " + idx + "\n"
+            self.cur_file = self.cur_file + "pop argument " + str(idx) + "\n"
         elif segment == "local":
-            self.cur_file = self.cur_file + "pop local " + idx + "\n"
+            self.cur_file = self.cur_file + "pop local " + str(idx) + "\n"
         elif segment == "static":
-            self.cur_file = self.cur_file + "pop static " + idx + "\n"
+            self.cur_file = self.cur_file + "pop static " + str(idx) + "\n"
         elif segment == "this":
-            self.cur_file = self.cur_file + "pop this " + idx + "\n"
+            self.cur_file = self.cur_file + "pop this " + str(idx) + "\n"
         elif segment == "that": #Might be problem with the index
-            self.cur_file = self.cur_file + "pop that " + idx + "\n"
+            self.cur_file = self.cur_file + "pop that " + str(idx) + "\n"
         elif segment == "pointer":
-            self.cur_file = self.cur_file + "pop pointer " + idx + "\n"
+            self.cur_file = self.cur_file + "pop pointer " + str(idx) + "\n"
         else: self.cur_file = self.cur_file + "pop temp " + str(idx) + "\n"
 
     def writeArithmetic(self,cmd):
