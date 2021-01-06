@@ -4,11 +4,12 @@ class VMWriter:
     cur_file = str
 
     def __init__(self, file):
-        self.cur_file = file
+        just = file
+        self.cur_file = ""
 
     def writePush(self, segment, idx):
         if segment == "constant":
-            self.cur_file = self.cur_file + "push constant " + idx + "\n"
+            self.cur_file = self.cur_file + "push constant " + str(idx) + "\n"
         elif segment == "argument":
             self.cur_file = self.cur_file + "push argument " + idx + "\n"
         elif segment == "local":
@@ -36,10 +37,10 @@ class VMWriter:
             self.cur_file = self.cur_file + "pop that " + idx + "\n"
         elif segment == "pointer":
             self.cur_file = self.cur_file + "pop pointer " + idx + "\n"
-        else: self.cur_file = self.cur_file + "pop temp " + idx + "\n"
+        else: self.cur_file = self.cur_file + "pop temp " + str(idx) + "\n"
 
     def writeArithmetic(self,cmd):
-        if cmd == "add":
+        if cmd == "+":
             self.cur_file = self.cur_file + "add" + "\n"
         elif cmd == "sub":
             self.cur_file = self.cur_file + "sub" + "\n"
@@ -67,10 +68,10 @@ class VMWriter:
         self.cur_file = self.cur_file + "if-goto " + label + "\n"
 
     def writeCall(self, name, nArgs):
-        self.cur_file = self.cur_file + "call " + name + " " + nArgs + "\n"
+        self.cur_file = self.cur_file + "call " + name + " " + str(nArgs) + "\n"
 
     def writeFunction(self, name, nLocals):
-        self.cur_file = self.cur_file + "function " + name + " " + nLocals + "\n"
+        self.cur_file = self.cur_file + "function " + str(name) + " " + str(nLocals) + "\n"
 
     def writeReturn(self):
         self.cur_file = self.cur_file + "return" + "\n"
