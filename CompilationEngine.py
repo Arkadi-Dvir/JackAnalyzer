@@ -146,11 +146,6 @@ class CompilationEngine:
                                           self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
             else: return False
             self.tokens.advance()
-            #############################################################################
-            #print(self.cur_subRoutineType + " " + self.className + "." + self.cur_scope, end=" ")
-            #print(len(self.sym_table.subroutine_table))
-
-            #############################################################################
             if not self.compileSubroutineBody():
                 return False
             self.taber = self.taber[0:-2]
@@ -261,13 +256,30 @@ class CompilationEngine:
                 self.tokens.advance()
                 self.taber = self.taber[0:-2]
                 self.my_file_string = self.my_file_string + self.taber + "</varDec>\n"
-
+            #####################################################
             name = self.className + "." + self.cur_scope
             self.vmWriter.writeFunction(name, str(nVar))
+            if self.cur_subRoutineType == "constructor":
+                self.vmWriter.writePush("constant", len(self.sym_table.class_table))
+                self.vmWriter.writeCall("Memory.alloc",1)
+                self.vmWriter.writePop("pointer",0)
+            if self.cur_subRoutineType == "method":
+                self.vmWriter.writePush("argument", 0)
+                self.vmWriter.writePop("pointer",0)
+            ####################################################
             return True
         else:
+            #####################################################
             name = self.className + "." + self.cur_scope
             self.vmWriter.writeFunction(name, str(nVar))
+            if self.cur_subRoutineType == "constructor":
+                self.vmWriter.writePush("constant", len(self.sym_table.class_table))
+                self.vmWriter.writeCall("Memory.alloc", 1)
+                self.vmWriter.writePop("pointer", 0)
+            if self.cur_subRoutineType == "method":
+                self.vmWriter.writePush("argument", 0)
+                self.vmWriter.writePop("pointer", 0)
+                ####################################################
             return True
 
 
@@ -316,7 +328,7 @@ class CompilationEngine:
             if cur_var in self.sym_table.subroutine_table:
                 self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.subroutine_table[cur_var]["idx"])
             else:
-                self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
+                self.vmWriter.writePop(self.sym_table.class_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
             #####################################
             if self.tokens.getToken() == "]":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -334,7 +346,7 @@ class CompilationEngine:
         if cur_var in self.sym_table.subroutine_table:
             self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.subroutine_table[cur_var]["idx"])
         else:
-            self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
+            self.vmWriter.writePop(self.sym_table.class_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
         #####################################
         if self.tokens.getToken() == ";":
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -556,6 +568,8 @@ class CompilationEngine:
             elif self.tokens.getToken() == "true":
                 self.vmWriter.writePush("constant", 0)
                 self.vmWriter.writeArithmetic("not")
+            elif self.tokens.getToken() == "this":
+                self.vmWriter.writePush("pointer", 0)
             else:self.vmWriter.writePush("constant",self.tokens.getToken()) # Need to modify for string
             #################################################
             self.tokens.advance()
@@ -644,6 +658,8 @@ class CompilationEngine:
 
     def compileSubroutineCall(self):
         call_subroutine = str
+        first_part = str
+        inher_indicator = 0
         nArgs = [0]
         if self.tokens.getToken() == self.subRoutineName or self.tokens.tokenType() == "identifier" \
                 and self.tokens.peek() != ".":
@@ -671,7 +687,16 @@ class CompilationEngine:
             if self.tokens.getToken() == ".":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
-                call_subroutine = call_subroutine + self.tokens.getToken()
+                ###############################
+                if call_subroutine in self.sym_table.subroutine_table:
+                    if self.sym_table.subroutine_table[call_subroutine]["type"] not in TYPE:
+                        first_part = call_subroutine
+                        call_subroutine = self.sym_table.subroutine_table[call_subroutine]["type"]\
+                                          + self.tokens.getToken()
+                        inher_indicator = 1
+                    else: call_subroutine = call_subroutine + self.tokens.getToken()
+                else:call_subroutine = call_subroutine + self.tokens.getToken()
+                #################################
                 self.tokens.advance()
             else: return False
             if self.tokens.getToken() == self.subRoutineName or self.tokens.tokenType() == "identifier":
@@ -693,6 +718,14 @@ class CompilationEngine:
                 else: return False
             else: return False
             #print("call " + call_subroutine + " " + str(nArgs[0]))
-            self.vmWriter.writeCall(call_subroutine,nArgs[0])
+            #########################################################
+            if inher_indicator == 1:
+                segment = self.sym_table.subroutine_table[first_part]["kind"]
+                idx = self.sym_table.subroutine_table[first_part]["idx"]
+                self.vmWriter.writePush(segment,idx)
+                self.vmWriter.writeCall(self.className+"."+call_subroutine, 1)
+            else: self.vmWriter.writeCall(self.className+"."+call_subroutine,nArgs[0])
+            #############################################################
         else: return True
+
         return True
