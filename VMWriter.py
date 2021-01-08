@@ -42,19 +42,19 @@ class VMWriter:
     def writeArithmetic(self,cmd):
         if cmd == "+":
             self.cur_file = self.cur_file + "add" + "\n"
-        elif cmd == "sub":
+        elif cmd == "-":
             self.cur_file = self.cur_file + "sub" + "\n"
         elif cmd == "neg":
             self.cur_file = self.cur_file + "neg" + "\n"
-        elif cmd == "eq":
+        elif cmd == "=":
             self.cur_file = self.cur_file + "eq" + "\n"
-        elif cmd == "gt":
+        elif cmd == ">":
             self.cur_file = self.cur_file + "gt" + "\n"
-        elif cmd == "lt":
+        elif cmd == "<":
             self.cur_file = self.cur_file + "lt" + "\n"
-        elif cmd == "and":
+        elif cmd == "&":
             self.cur_file = self.cur_file + "and" + "\n"
-        elif cmd == "or":
+        elif cmd == "|":
             self.cur_file = self.cur_file + "or" + "\n"
         else: self.cur_file = self.cur_file + "not" + "\n"
 

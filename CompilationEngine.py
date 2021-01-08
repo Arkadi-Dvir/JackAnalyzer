@@ -22,7 +22,11 @@ class CompilationEngine:
     just = str
     sym_table = SymbolTable
     vmWriter = VMWriter
+    while_counter = int
+    if_counter = int
     def __init__(self, tokens_type):
+        self.while_counter = 0
+        self.if_counter = 0
         self.tokens = tokens_type
         self.sym_table = SymbolTable.SymbolTable()
         self.vmWriter = VMWriter.VMWriter(self.just)
@@ -362,6 +366,13 @@ class CompilationEngine:
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
             self.tokens.advance()
         else: return False
+        ####################################
+        self.vmWriter.writeIf("IF_TRUE" + str(self.if_counter))
+        cur_idx = self.if_counter
+        self.if_counter += 1
+        self.vmWriter.writeGoto("IF_FALSE" + str(cur_idx))
+        self.vmWriter.writeLabel("IF_TRUE"+str(cur_idx))
+        ####################################
         if self.tokens.getToken() == "{":
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
@@ -378,6 +389,10 @@ class CompilationEngine:
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
             self.tokens.advance()
+            #######################################
+            self.vmWriter.writeGoto("IF_END"+str(cur_idx))
+            self.vmWriter.writeLabel("IF_FALSE"+str(cur_idx))
+            #######################################
             if self.tokens.getToken() == "{":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
@@ -393,9 +408,15 @@ class CompilationEngine:
         else:
             self.taber = self.taber[0:-2]
             self.my_file_string = self.my_file_string + self.taber + "</ifStatement>\n"
+            #############################################
+            self.vmWriter.writeLabel("IF_END"+str(cur_idx))
+            #############################################
             return True
         self.taber = self.taber[0:-2]
         self.my_file_string = self.my_file_string + self.taber + "</ifStatement>\n"
+        #############################################
+        self.vmWriter.writeLabel("IF_END" + str(cur_idx))
+        #############################################
         return True
 
     def compileWhile(self):
@@ -404,6 +425,11 @@ class CompilationEngine:
             self.taber = self.taber + "  "
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+            ######################################################################
+            self.vmWriter.writeLabel("WHILE_LOOP" + str(self.while_counter))
+            cur_idx = self.while_counter
+            self.while_counter +=1
+            #####################################################################
             self.tokens.advance()
             if self.tokens.getToken() == "(":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -414,6 +440,10 @@ class CompilationEngine:
             if self.tokens.getToken() == ")":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
+                #########################################
+                self.vmWriter.writeArithmetic("not")
+                self.vmWriter.writeIf("WHILE_END"+str(cur_idx))
+                #########################################
                 self.tokens.advance()
             else: return False
             if self.tokens.getToken() == "{":
@@ -430,6 +460,10 @@ class CompilationEngine:
             else: return False
             self.taber = self.taber[0:-2]
             self.my_file_string = self.my_file_string + self.taber + "</whileStatement>\n"
+            #############################################################
+            self.vmWriter.writeGoto("WHILE_LOOP"+str(cur_idx))
+            self.vmWriter.writeLabel("WHILE_END"+str(cur_idx))
+            #############################################################
             return True
         else: return True
 
@@ -462,16 +496,19 @@ class CompilationEngine:
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                   self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
             self.tokens.advance()
+            if self.tokens.getToken() == ";":
+                ############################################
+                self.vmWriter.writePush("constant", 0)
+                ###########################################
             if self.tokens.getToken() != ";" and not self.compileExpression():
                 return False
             if self.tokens.getToken() == ";":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
                                       self.tokens.getToken() + " </" + self.tokens.tokenType() + ">" + "\n"
                 self.tokens.advance()
-                ############################################
-                self.vmWriter.writePush("constant", 0)
+                ###################################
                 self.vmWriter.writeReturn()
-                ###########################################
+                ###################################
             else: return False
             self.taber = self.taber[0:-2]
             self.my_file_string = self.my_file_string + self.taber + "</returnStatement>\n"
@@ -482,6 +519,8 @@ class CompilationEngine:
         op_array = []
         self.my_file_string = self.my_file_string + self.taber + "<expression>\n"
         self.taber = self.taber + "  "
+        if self.tokens.getToken() == "~":
+            op_array.append("~")
         if not self.compileTerm():
             return False
         while self.tokens.getToken() in OP:
@@ -493,12 +532,10 @@ class CompilationEngine:
                 return False
         ###################################
         for i in range(len(op_array)):
-            #print("call " + op_array[len(op_array) - i - 1])
             if op_array[len(op_array) - i - 1] == "*":
                 self.vmWriter.writeCall("Math.muliply", 2)
                 continue
             self.vmWriter.writeArithmetic(op_array[len(op_array) - i - 1])
-
         ##################################
         self.taber = self.taber[0:-2]
         self.my_file_string = self.my_file_string + self.taber + "</expression>\n"
