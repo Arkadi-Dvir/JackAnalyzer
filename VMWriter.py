@@ -3,8 +3,7 @@ import sys
 class VMWriter:
     cur_file = str
 
-    def __init__(self, file):
-        just = file
+    def __init__(self):
         self.cur_file = ""
 
     def writePush(self, segment, idx):
@@ -27,7 +26,7 @@ class VMWriter:
     def writePop(self, segment, idx):
         if segment == "argument":
             self.cur_file = self.cur_file + "pop argument " + str(idx) + "\n"
-        elif segment == "local":
+        elif segment == "var":
             self.cur_file = self.cur_file + "pop local " + str(idx) + "\n"
         elif segment == "static":
             self.cur_file = self.cur_file + "pop static " + str(idx) + "\n"

@@ -2,6 +2,7 @@ import sys
 import os
 import JackTokenizer
 import CompilationEngine
+import VMWriter
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
@@ -13,20 +14,22 @@ if __name__ == '__main__':
             for file in files:
                 fi = os.path.normpath(file_path + '/' + file)
                 token = JackTokenizer.JackTokenizer(fi)
-                compile = CompilationEngine.CompilationEngine(token)
-                text_file = str(compile.my_file_string)
+                vm_writer = VMWriter.VMWriter()
+                compile = CompilationEngine.CompilationEngine(token, vm_writer)
+                text_file = str(vm_writer.cur_file)
                 fileName = (file_path + '/' + file).split(".")[0]
-                fileName = fileName + ".xml"
+                fileName = fileName + ".vm"
                 token_file = open(fileName, "w+")
                 token_file.write(text_file)
                 token_file.close()
         else:  # file path
             token = JackTokenizer.JackTokenizer(file_path)
-            compile = CompilationEngine.CompilationEngine(token)
+            vm_writer = VMWriter.VMWriter()
+            compile = CompilationEngine.CompilationEngine(token, vm_writer)
             compile.compileClass()
-            text_file = str(compile.my_file_string)
+            text_file = str(vm_writer.cur_file)
             fileName = sys.argv[1].split(".")[0]
-            fileName = fileName + ".xml"
+            fileName = fileName + ".vm"
             token_file = open(fileName, "w+")
             token_file.write(text_file)
             token_file.close()

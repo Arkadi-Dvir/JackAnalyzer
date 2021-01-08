@@ -19,17 +19,16 @@ class CompilationEngine:
     cur_kind = str
     cur_type = str
     cur_subRoutineType = str
-    just = str
     sym_table = SymbolTable
     vmWriter = VMWriter
     while_counter = int
     if_counter = int
-    def __init__(self, tokens_type):
+    def __init__(self, tokens_type, vm_writer):
         self.while_counter = 0
         self.if_counter = 0
         self.tokens = tokens_type
         self.sym_table = SymbolTable.SymbolTable()
-        self.vmWriter = VMWriter.VMWriter(self.just)
+        self.vmWriter = vm_writer
 
     def compileClass(self):
         if self.tokens.getToken() == "class":
@@ -315,9 +314,9 @@ class CompilationEngine:
                 return False
             #####################################
             if cur_var in self.sym_table.subroutine_table:
-                self.vmWriter.writePop("local", self.sym_table.subroutine_table[cur_var]["idx"])
+                self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.subroutine_table[cur_var]["idx"])
             else:
-                self.vmWriter.writePop("static", self.sym_table.class_table[cur_var]["idx"])
+                self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
             #####################################
             if self.tokens.getToken() == "]":
                 self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -333,9 +332,9 @@ class CompilationEngine:
             return False
         #####################################
         if cur_var in self.sym_table.subroutine_table:
-            self.vmWriter.writePop("local", self.sym_table.subroutine_table[cur_var]["idx"])
+            self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.subroutine_table[cur_var]["idx"])
         else:
-            self.vmWriter.writePop("static", self.sym_table.class_table[cur_var]["idx"])
+            self.vmWriter.writePop(self.sym_table.subroutine_table[cur_var]["kind"], self.sym_table.class_table[cur_var]["idx"])
         #####################################
         if self.tokens.getToken() == ";":
             self.my_file_string = self.my_file_string + self.taber + "<" + self.tokens.tokenType() + "> " + \
@@ -533,7 +532,7 @@ class CompilationEngine:
         ###################################
         for i in range(len(op_array)):
             if op_array[len(op_array) - i - 1] == "*":
-                self.vmWriter.writeCall("Math.muliply", 2)
+                self.vmWriter.writeCall("Math.multiply", 2)
                 continue
             self.vmWriter.writeArithmetic(op_array[len(op_array) - i - 1])
         ##################################
