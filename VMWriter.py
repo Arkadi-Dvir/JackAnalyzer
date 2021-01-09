@@ -15,7 +15,7 @@ class VMWriter:
             self.cur_file = self.cur_file + "push local " + str(idx) + "\n"
         elif segment == "static":
             self.cur_file = self.cur_file + "push static " + str(idx) + "\n"
-        elif segment == "this":
+        elif segment == "field":
             self.cur_file = self.cur_file + "push this " + str(idx) + "\n"
         elif segment == "that": #Might be problem with the index
             self.cur_file = self.cur_file + "push that " + str(idx) + "\n"
